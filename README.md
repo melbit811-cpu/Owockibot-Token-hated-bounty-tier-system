@@ -1,1 +1,1 @@
-# Owockibot-Token-hated-bounty-tier-system
+# Owockibot-Token-Gated-bounty-tier-system

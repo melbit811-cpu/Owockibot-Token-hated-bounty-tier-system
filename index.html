@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>owockibot — Tier Access Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0B1220; --panel:#111B2E; --panel-2:#0E1626;
+    --line: rgba(237,239,243,0.09); --line-strong: rgba(237,239,243,0.18);
+    --text:#EDEFF3; --dim:#8792A3;
+    --bronze:#C97A4A; --bronze-dim: rgba(201,122,74,0.15);
+    --silver:#B9C2CC; --silver-dim: rgba(185,194,204,0.15);
+    --gold:#E3B34A; --gold-dim: rgba(227,179,74,0.18);
+    --rose:#E2725B;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--ink);color:var(--text);font-family:'Space Grotesk',sans-serif;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  .wrap{max-width:720px;margin:0 auto;padding:0 20px 100px;}
+
+  .hero{padding:56px 20px 32px; border-bottom:1px solid var(--line); text-align:center;
+    background: radial-gradient(500px 260px at 50% 0%, rgba(227,179,74,0.08), transparent 60%);}
+  .eyebrow{font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--gold); margin-bottom:16px;}
+  h1{font-size:clamp(28px,6vw,40px); margin:0 0 12px; font-weight:700; letter-spacing:-0.01em;}
+  .sub{color:var(--dim); font-size:15px; max-width:480px; margin:0 auto 8px; line-height:1.5;}
+  .disclaimer{
+    margin-top:20px; padding:12px 16px; background:var(--panel-2); border:1px solid var(--line-strong);
+    font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--dim); text-align:left; line-height:1.6;
+  }
+  .disclaimer b{color:var(--gold);}
+
+  .input-row{padding:28px 20px; border-bottom:1px solid var(--line);}
+  .input-label{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--dim); text-transform:uppercase; letter-spacing:.06em; margin-bottom:10px;}
+  .input-group{display:flex; gap:8px;}
+  input[type=text]{
+    flex:1; background:var(--panel); border:1px solid var(--line-strong); color:var(--text);
+    padding:12px 14px; font-family:'JetBrains Mono',monospace; font-size:13px; border-radius:4px;
+  }
+  input[type=text]:focus{outline:none; border-color:var(--gold);}
+  button.check{
+    background:var(--gold); color:var(--ink); border:none; padding:0 20px; font-weight:600;
+    font-family:'Space Grotesk',sans-serif; font-size:14px; cursor:pointer; border-radius:4px;
+  }
+  button.check:active{opacity:0.8;}
+  button.check:disabled{opacity:0.5;}
+  .sample-btns{margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;}
+  .sample-btn{
+    font-family:'JetBrains Mono',monospace; font-size:11px; background:none; border:1px solid var(--line-strong);
+    color:var(--dim); padding:6px 10px; border-radius:4px; cursor:pointer;
+  }
+
+  .status-msg{padding:20px; text-align:center; color:var(--dim); font-family:'JetBrains Mono',monospace; font-size:13px;}
+  .status-msg.err{color:var(--rose);}
+
+  .result{display:none; padding:32px 20px; border-bottom:1px solid var(--line);}
+  .result.active{display:block;}
+
+  .tier-card{
+    padding:28px 24px; border-radius:8px; text-align:center; margin-bottom:24px; border:1px solid var(--line-strong);
+  }
+  .tier-card.bronze{background:var(--bronze-dim); border-color:var(--bronze);}
+  .tier-card.silver{background:var(--silver-dim); border-color:var(--silver);}
+  .tier-card.gold{background:var(--gold-dim); border-color:var(--gold);}
+  .tier-card.none{background:var(--panel-2);}
+  .tier-badge{font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.1em; margin-bottom:8px; opacity:0.85;}
+  .tier-name{font-size:32px; font-weight:700; margin-bottom:6px;}
+  .tier-card.bronze .tier-name{color:var(--bronze);}
+  .tier-card.silver .tier-name{color:var(--silver);}
+  .tier-card.gold .tier-name{color:var(--gold);}
+  .tier-balance{font-family:'JetBrains Mono',monospace; font-size:14px; color:var(--dim);}
+
+  .progress-track{height:8px; background:var(--panel-2); border:1px solid var(--line); margin:20px 0 8px; overflow:hidden; border-radius:4px;}
+  .progress-fill{height:100%; background:linear-gradient(90deg, var(--bronze), var(--silver), var(--gold));}
+  .progress-labels{display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--dim);}
+
+  .tier-list{display:flex; flex-direction:column; gap:1px; background:var(--line); border:1px solid var(--line); margin-top:24px;}
+  .tier-row{background:var(--panel); padding:16px 18px; display:flex; align-items:center; gap:14px;}
+  .tier-row.unlocked{background:rgba(227,179,74,0.06);}
+  .tier-dot{width:10px; height:10px; border-radius:50%; flex-shrink:0;}
+  .tier-dot.bronze{background:var(--bronze);} .tier-dot.silver{background:var(--silver);} .tier-dot.gold{background:var(--gold);}
+  .tier-row-name{font-weight:600; font-size:14px; flex:1;}
+  .tier-row-req{font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--dim);}
+  .tier-row-lock{font-family:'JetBrains Mono',monospace; font-size:11px;}
+  .tier-row.unlocked .tier-row-lock{color:var(--gold);}
+  .tier-row:not(.unlocked) .tier-row-lock{color:var(--dim);}
+
+  section.editorial{padding:32px 20px;}
+  .sec-title{font-size:19px; font-weight:600; margin:0 0 16px;}
+  .bounty-item{display:flex; justify-content:space-between; gap:12px; padding:12px 14px; border-bottom:1px solid var(--line); font-size:14px; align-items:center;}
+  .bounty-item:last-child{border-bottom:none;}
+  .bounty-item.locked{opacity:0.4;}
+  .bounty-title{flex:1;}
+  .bounty-amt{font-family:'JetBrains Mono',monospace; color:var(--gold); font-weight:600; white-space:nowrap;}
+  .bounty-tier-tag{font-family:'JetBrains Mono',monospace; font-size:10px; text-transform:uppercase; padding:2px 7px; border-radius:3px; margin-left:8px;}
+  .bounty-tier-tag.bronze{background:var(--bronze-dim); color:var(--bronze);}
+  .bounty-tier-tag.silver{background:var(--silver-dim); color:var(--silver);}
+  .bounty-tier-tag.gold{background:var(--gold-dim); color:var(--gold);}
+
+  footer{padding:36px 20px; text-align:center; color:var(--dim); font-size:12px; font-family:'JetBrains Mono',monospace; border-top:1px solid var(--line);}
+  footer a{color:var(--gold);}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="eyebrow">owockibot · concept demo</div>
+  <h1>Tier Access Preview</h1>
+  <p class="sub">Check what $OWOCKIBOT balance unlocks — a working concept for gating higher-value bounties by token holdings.</p>
+  <div class="disclaimer">
+    <b>This is a demo, not a live gating system.</b> It reads a real on-chain balance from Base via public RPC, but tier thresholds and bounty-tier mappings below are illustrative example values, not official rules. The token contract address is configurable at the top of the script — verify it independently before treating it as authoritative.
+  </div>
+</div>
+
+<div class="input-row">
+  <div class="input-label">Check a wallet</div>
+  <div class="input-group">
+    <input type="text" id="walletInput" placeholder="0x... wallet address" />
+    <button class="check" id="checkBtn">Check</button>
+  </div>
+  <div class="sample-btns">
+    <button class="sample-btn" data-addr="0x9e4840b90d4BB24cac6cE9193d6Fa72f234D688e">Try example wallet</button>
+  </div>
+</div>
+
+<div id="statusMsg"></div>
+<div class="result" id="result"></div>
+
+<script>
+// ---- Configuration ----
+const TOKEN_ADDRESS = '0x26B7805Dd8aEc26DA55fc8e0c659cf6822b740Be'; // $OWOCKIBOT on Base — verify independently before production use
+const RPC_URLS = [
+  'https://mainnet.base.org',
+  'https://base.llamarpc.com',
+  'https://base-rpc.publicnode.com',
+];
+const CORS_PROXIES_RPC = ['https://corsproxy.io/?url=', 'https://api.allorigins.win/raw?url='];
+const TOKEN_DECIMALS = 18; // standard ERC-20 default; adjust if the real contract differs
+
+const TIERS = [
+  { name: 'Bronze', key: 'bronze', min: 1_000_000, maxBountyUsd: 25 },
+  { name: 'Silver', key: 'silver', min: 10_000_000, maxBountyUsd: 100 },
+  { name: 'Gold',   key: 'gold',   min: 100_000_000, maxBountyUsd: Infinity },
+];
+
+const BOUNTY_BOARD_API = 'https://www.owockibot.xyz/api/bounty-board';
+const CORS_PROXIES = ['https://corsproxy.io/?url=', 'https://api.allorigins.win/raw?url='];
+
+function usd(n){ return '$' + Math.round(n).toLocaleString('en-US'); }
+function fmtTokens(n){ return Math.round(n).toLocaleString('en-US'); }
+
+function tierFor(balance){
+  let current = null;
+  for (const t of TIERS) if (balance >= t.min) current = t;
+  return current; // null if below Bronze
+}
+
+async function rpcCall(url, body){
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`RPC returned ${res.status}`);
+  const json = await res.json();
+  if (json.error) throw new Error(json.error.message || 'RPC error');
+  return json.result;
+}
+
+async function getTokenBalance(address){
+  // Manual eth_call to balanceOf(address) — avoids needing an external web3 library.
+  const selector = '0x70a08231'; // balanceOf(address)
+  const paddedAddr = address.toLowerCase().replace('0x', '').padStart(64, '0');
+  const data = selector + paddedAddr;
+  const body = {
+    jsonrpc: '2.0',
+    id: 1,
+    method: 'eth_call',
+    params: [{ to: TOKEN_ADDRESS, data }, 'latest'],
+  };
+
+  let lastErr;
+  // Try each direct RPC endpoint first
+  for (const url of RPC_URLS){
+    try{
+      const result = await rpcCall(url, body);
+      return Number(BigInt(result)) / Math.pow(10, TOKEN_DECIMALS);
+    } catch(e){ lastErr = e; }
+  }
+  // Fall back through CORS proxies on the primary RPC if direct calls were blocked
+  for (const proxy of CORS_PROXIES_RPC){
+    try{
+      const result = await rpcCall(proxy + encodeURIComponent(RPC_URLS[0]), body);
+      return Number(BigInt(result)) / Math.pow(10, TOKEN_DECIMALS);
+    } catch(e){ lastErr = e; }
+  }
+  throw lastErr || new Error('All RPC attempts failed');
+}
+
+async function getBounties(){
+  const attempts = [BOUNTY_BOARD_API, ...CORS_PROXIES.map(p => p + encodeURIComponent(BOUNTY_BOARD_API))];
+  for (const url of attempts){
+    try{
+      const res = await fetch(url, { headers: { Accept: 'application/json' } });
+      if (!res.ok) continue;
+      const data = await res.json();
+      if (Array.isArray(data) && data.length) return data;
+    } catch(_) {}
+  }
+  return null;
+}
+
+function isValidAddress(a){
+  return /^0x[a-fA-F0-9]{40}$/.test(a);
+}
+
+async function runCheck(address){
+  const statusEl = document.getElementById('statusMsg');
+  const resultEl = document.getElementById('result');
+  resultEl.classList.remove('active');
+  resultEl.innerHTML = '';
+
+  if (!isValidAddress(address)){
+    statusEl.innerHTML = '<div class="status-msg err">That doesn\'t look like a valid wallet address (expected 0x + 40 hex characters).</div>';
+    return;
+  }
+
+  statusEl.innerHTML = '<div class="status-msg">Reading token balance from Base…</div>';
+
+  let balance;
+  try{
+    balance = await getTokenBalance(address);
+  } catch(e){
+    statusEl.innerHTML = `<div class="status-msg err">Could not read balance from Base RPC (${e.message}). The token contract address may need verification — see the disclaimer above.</div>`;
+    return;
+  }
+
+  const tier = tierFor(balance);
+  const bounties = await getBounties();
+
+  render(address, balance, tier, bounties);
+  statusEl.innerHTML = '';
+}
+
+function render(address, balance, tier, bounties){
+  const resultEl = document.getElementById('result');
+  const nextTier = TIERS.find(t => !tier || t.min > tier.min);
+  const tierClass = tier ? tier.key : 'none';
+  const tierLabel = tier ? tier.name : 'No tier';
+
+  const progressPct = tier
+    ? Math.min(100, (balance / (nextTier ? nextTier.min : tier.min)) * 100)
+    : Math.min(100, (balance / TIERS[0].min) * 100);
+
+  let bountyHtml = '<div class="empty-note mono" style="color:var(--dim); font-size:13px;">Could not load live bounty data to preview tier access.</div>';
+  if (bounties){
+    const valid = bounties.filter(b => typeof b.reward_usdc === 'number' && b.reward_usdc > 0 && b.status === 'open').slice(0, 8);
+    bountyHtml = valid.length ? valid.map(b => {
+      const bTier = TIERS.find(t => b.reward_usdc <= t.maxBountyUsd) || TIERS[TIERS.length - 1];
+      const unlocked = tier && TIERS.indexOf(tier) >= TIERS.indexOf(bTier);
+      return `
+        <div class="bounty-item ${unlocked ? '' : 'locked'}">
+          <div class="bounty-title">${escapeHtml(b.title || 'Untitled bounty')} <span class="bounty-tier-tag ${bTier.key}">${bTier.name}</span></div>
+          <div class="bounty-amt">${usd(b.reward_usdc)}</div>
+        </div>`;
+    }).join('') : '<div class="empty-note mono" style="color:var(--dim); font-size:13px;">No open bounties on the board right now.</div>';
+  }
+
+  resultEl.innerHTML = `
+    <div class="tier-card ${tierClass}">
+      <div class="tier-badge">${address.slice(0,6)}…${address.slice(-4)}</div>
+      <div class="tier-name">${tierLabel}</div>
+      <div class="tier-balance">${fmtTokens(balance)} $OWOCKIBOT held</div>
+      <div class="progress-track"><div class="progress-fill" style="width:${progressPct}%"></div></div>
+      <div class="progress-labels">
+        <span>0</span>
+        <span>${nextTier ? 'Next: ' + fmtTokens(nextTier.min) : 'Max tier reached'}</span>
+      </div>
+    </div>
+
+    <div class="tier-list">
+      ${TIERS.map(t => {
+        const unlocked = tier && TIERS.indexOf(tier) >= TIERS.indexOf(t);
+        return `
+        <div class="tier-row ${unlocked ? 'unlocked' : ''}">
+          <div class="tier-dot ${t.key}"></div>
+          <div class="tier-row-name">${t.name}</div>
+          <div class="tier-row-req mono">${fmtTokens(t.min)}+ tokens · up to ${t.maxBountyUsd === Infinity ? 'any' : usd(t.maxBountyUsd)} bounties</div>
+          <div class="tier-row-lock">${unlocked ? '✓ unlocked' : 'locked'}</div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <section class="editorial" style="padding-left:0; padding-right:0;">
+      <h2 class="sec-title">Live bounty access preview</h2>
+      ${bountyHtml}
+    </section>
+  `;
+  resultEl.classList.add('active');
+}
+
+document.getElementById('checkBtn').addEventListener('click', () => {
+  const addr = document.getElementById('walletInput').value.trim();
+  runCheck(addr);
+});
+document.getElementById('walletInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('checkBtn').click();
+});
+document.querySelectorAll('.sample-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.getElementById('walletInput').value = btn.dataset.addr;
+    runCheck(btn.dataset.addr);
+  });
+});
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+</script>
+
+<footer>
+  Reads live from Base RPC (<span class="mono">mainnet.base.org</span>) and <a href="https://www.owockibot.xyz/api/bounty-board" target="_blank">owockibot.xyz/api/bounty-board</a>. Tier thresholds shown are illustrative defaults — edit the <span class="mono">TIERS</span> array in the source to match real policy.
+</footer>
+
+</body>
+</html>
